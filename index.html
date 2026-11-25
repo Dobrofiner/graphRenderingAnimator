@@ -1,0 +1,112 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Графики с анимацией</title>
+    <link rel="stylesheet" href="dobCss.css">
+    <style>
+        body {
+            background-color: var(--color-black);
+            margin: 0;
+            padding: 10px;
+        }
+        /* Точечные поправки для инпутов и кнопок, чтобы они не растягивались безумно */
+        .fixed-input {
+            width: 70px !important;
+            display: inline-block !important;
+            background-color: var(--color-black);
+            color: var(--color-white);
+            border: 1px solid var(--color-dob-hover);
+            padding: 4px;
+            border-radius: 4px;
+        }
+        .jam-section {
+            border: 1px solid var(--color-dob-hover);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(0,0,0,0.8);
+        }
+        .fw50{
+            width: 70px !important;
+        }
+    </style>
+</head>
+<body>
+<div class="dcol-12 dtext-center">
+
+<div class="dcontainer">
+    <div class="dcol-12 dtext-center ">
+   <canvas id="graph" width="640" height="480" class="canvas" style="
+    background-color: white;
+"></canvas>
+    </div>
+    <script src="./dobipt.js"></script>
+    <!-- Управление игрой (занимает оставшиеся 6 колон = 48%) -->
+    <div id="control" class="dcol-6 jam-section dcolor-white" style="vertical-align: top;">
+        <div class="dcolor-blue-blue" style="font-weight: bold; margin-bottom: 6px;">Управление рендерингом:</div>
+        <div class="dcontainer" style="margin-bottom: 8px;">
+            
+            <button onclick="if(!render.running){
+                render(true,true)
+            }" class="dbtn dcol-3 dbg-light-green">Запустить рендеринг</button>
+            <button onclick="cancelAnimationFrame(last);render.running=false" class="dbtn dcol-3 dbg-crimson-dark">Пауза</button>
+            
+        </div>
+        <div class="dcontainer" style="margin-bottom: 6px; font-size: 0.8rem;">
+            <button onclick="state.x=document.getElementById('setX').valueAsNumber;render(false,false)" class="dbtn" style="width: 70%;">Установить x:</button>
+            <input id="setX" type="number" value="2" class="fixed-input" step="0.01" style="width: 25% !important;">
+        </div>
+        <div class="dcontainer" style="margin-bottom: 6px; font-size: 0.8rem;">
+            <button onclick="state.y=document.getElementById('setYm').valueAsNumber;render(false,false)" class="dbtn" style="width: 70%;">Установить yMul:</button>
+            <input id="setYm" type="number" value="3" class="fixed-input" step="0.01" style="width: 25% !important;">
+        </div>
+        <div class="dcontainer" style="margin-bottom: 6px; font-size: 0.8rem;">
+            
+            
+        </div>
+        <div class="dcontainer">
+            <span style="font-size: 0.8rem;">Выбрать функцию для графика:</span>
+            <select id="funcSelector" class="fixed-input" style="width: 60% !important;" onchange="changeFunc(document.getElementById('funcSelector').selectedOptions[0].value)">
+                <option value="fastWAct"  selected="">fastWact - FWU- fast w-formed unlinear unit</option>
+                <option value="tanh">Tanh - уставший S</option>
+                <option value="sin">sin</option>
+                <option value="cos">cos</option>
+                <option value="parobola">Паробала x**2-x-1</option><!--да,это паробала которая создает число золотого сечения!-->
+                <option value="sqrt">Квадратный корень</option>
+                <option value="abs">Модуль x</option>
+                <option value="exp">Экспонента</option>
+                <option value="log">Логарифм 2.718...0455</option>
+                <option value="sigmoid">Тупо сигмоида 1/(1+e^-x) - бодрый S</option>
+                <option value="relu">Тупо RELU</option>
+                <option value="identity">Функция которая ничего не делает - тупо возвращает x</option>
+                <option value="cube">x**3 - возведение в куб</option>
+                <option value="softplus">SoftPlus (фиг знаю что он делает)</option>
+                <option value="elu">ELU</option>
+                <!--гиперболы не будет !-->
+            </select>
+        </div>
+    </div>
+</div>
+            <!-- Настройки -->
+            <div id="settings" class="dcol-12 jam-section dcolor-white">
+                <div class="dcolor-orange" style="font-weight: bold; margin-bottom: 6px;">Настройки:</div>
+                <div class="dcontainer" style="margin-bottom: 8px; font-size: 0.85rem;">
+                    Скорость по x <input id="speed" type="number" value="0.01" step="0.01" class="fixed-input fw50">
+                    Скорость по y<input id="speedY" type="number" value="0.01" step="0.01" class="fixed-input fw50" >
+                    Начало графика по x:<input id="start" type="number" value="-8" step="0.01" class="fixed-input fw50" ><br>
+                    Конец графика по x<input id="end" type="number"  value="8" step="0.01" class="fixed-input fw50" >
+                    Шаг подписей по x<input id="textStep" type="number" value="1.2" step="0.01" class="fixed-input fw50">
+                    Шаг подписей по y<input id="textStepY" type="number" value="0.3" step="0.01" class="fixed-input fw50"><br>
+                    Ресетить ли yMul если вылетел за пределы начала графика?<input id="resetYm" type="checkbox" checked="true">
+                    Точность вывода (знаки)<input id="precise" type="number" value="1" step="1" class="fixed-input fw50">
+                    Шаг рендеринга(рекомендуется не меньше еденицы)<input id="stepDraw" type="number" value="0.00125" step="0.0001" class="fixed-input fw50"><br>
+                </div>
+                <div class="dcontainer">
+                    <button onclick="coolSettings()" class="dbtn dcol-2 dbg-light-green">Применить</button>
+                    <button onclick="downloadData(JSON.stringify({settings:settings,state:state}),'visualistorGraphics.json','application/json')" class="dbtn dcol-2">Сохр. настройки</button>
+                </div>
+            </div>
+
+        </div>
+
+</body></html>
